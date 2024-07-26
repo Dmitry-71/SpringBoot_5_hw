@@ -1,5 +1,6 @@
 package ru.netology.springboot_5_hw.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -8,6 +9,7 @@ import ru.netology.springboot_5_hw.systemProfile.SystemProfile;
 @RestController
 @RequestMapping("/")
 public class ProfileController {
+
     private SystemProfile profile;
 
     public ProfileController(SystemProfile profile) {

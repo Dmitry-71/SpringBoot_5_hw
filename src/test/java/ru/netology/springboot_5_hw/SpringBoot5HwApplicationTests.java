@@ -2,36 +2,50 @@ package ru.netology.springboot_5_hw;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.ResponseEntity;
 import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+@Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class SpringBoot5HwApplicationTests {
-	private static GenericContainer<?> myapp1 = new GenericContainer<>("devapp")
-			.withExposedPorts(8080);
-
-	private static GenericContainer<?> myapp2 = new GenericContainer<>("prodapp")
-			.withExposedPorts(8081);
-
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+class DemoApplicationTests {
 	@Autowired
 	TestRestTemplate restTemplate;
 
+	@Container
+	private static final GenericContainer<?> devapp = new GenericContainer<>("devapp")
+			.withExposedPorts(8080);
+	@Container
+	private static final GenericContainer<?> prodapp = new GenericContainer<>("prodapp")
+			.withExposedPorts(8081);
+
 	@BeforeAll
-	public static void setUp() {
-		myapp1.start();
-		myapp2.start();
+	void setUp() {
+		devapp.start();
+		prodapp.start();
 	}
 
 	@Test
-	void contextLoads() {
-		ResponseEntity<String> forEntity1 = restTemplate.getForEntity("http://localhost:" + myapp1.getMappedPort(8080), String.class);
-		System.out.println(forEntity1.getBody());
-
-		ResponseEntity<String> forEntity2 = restTemplate.getForEntity("http://localhost:" + myapp2.getMappedPort(8081), String.class);
-		System.out.println(forEntity2.getBody());
+	void testDev() {
+		Integer devappPort = devapp.getMappedPort(8080);
+		ResponseEntity<String> devappEntity = restTemplate.getForEntity(
+				"http://localhost:" + devappPort + "/profile", String.class);
+		assertEquals(devappEntity.getBody(), "Current profile is dev");
 	}
 
+	@Test
+	void testProd() {
+		Integer prodappPort = prodapp.getMappedPort(8081);
+		ResponseEntity<String> prodappEntity = restTemplate.getForEntity(
+				"http://localhost:" + prodappPort + "/profile", String.class);
+		assertEquals(prodappEntity.getBody(), "Current profile is production");
+	}
 }
